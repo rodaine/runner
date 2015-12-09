@@ -39,36 +39,45 @@ func TestSequence_Run_EmptySequence(t *testing.T) {
 
 func TestSequence_Run_Success(t *testing.T) {
 	is := assert.New(t)
-	p, out := getTestPrinter()
+
+	cmdA := &MockCommand{name: "A"}
+	cmdB := &MockCommand{name: "B"}
+	cmdC := &MockCommand{name: "C"}
 
 	ctx := NewContext(3)
-	seq := NewSequence(
-		&MockCommand{name: "A"},
-		&MockCommand{name: "B"},
-		&MockCommand{name: "C"},
-	)
+	seq := NewSequence(cmdA, cmdB, cmdC)
+	seq.Run(ctx, DefaultPrinter)
 
-	seq.Run(ctx, p)
 	is.NoError(ctx.Err())
-	is.Equal("MOCK running A\nMOCK running B\nMOCK running C\n", out.String())
+	for _, cmd := range []*MockCommand{cmdA, cmdB, cmdC} {
+		is.True(cmd.ran)
+		is.False(cmd.failed)
+		is.False(cmd.rolledBack)
+	}
 }
 
 func TestSequence_Run_Rollback(t *testing.T) {
 	is := assert.New(t)
-	p, out := getTestPrinter()
 	err := errors.New("foobar")
 
-	ctx := NewContext(3)
-	seq := NewSequence(
-		&MockCommand{name: "A"},
-		&MockCommand{name: "B"},
-		&MockCommand{name: "C", err: err},
-		&MockCommand{name: "D"},
-	)
+	cmdA := &MockCommand{name: "A"}
+	cmdB := &MockCommand{name: "B"}
+	cmdC := &MockCommand{name: "C", err: err}
+	cmdD := &MockCommand{name: "D"}
 
-	seq.Run(ctx, p)
+	ctx := NewContext(3)
+	seq := NewSequence(cmdA, cmdB, cmdC, cmdD)
+	seq.Run(ctx, DefaultPrinter)
+
 	is.Equal(err, ctx.Err())
-	is.Equal("MOCK running A\nMOCK running B\nMOCK running C\nMOCK error C: foobar\nMOCK rolling back B\nMOCK rolling back A\n", out.String())
+	is.True(cmdA.ran)
+	is.True(cmdA.rolledBack)
+	is.True(cmdB.ran)
+	is.True(cmdB.rolledBack)
+	is.True(cmdC.ran)
+	is.True(cmdC.failed)
+	is.False(cmdC.rolledBack)
+	is.False(cmdD.ran)
 }
 
 func TestSequence_DryRun_EmptySequence(t *testing.T) {
@@ -85,18 +94,15 @@ func TestSequence_DryRun_EmptySequence(t *testing.T) {
 
 func TestSequence_DryRun_Success(t *testing.T) {
 	is := assert.New(t)
-	p, out := getTestPrinter()
+
+	cmdA := &MockCommand{name: "A"}
+	cmdB := &MockCommand{name: "B"}
+	cmdC := &MockCommand{name: "C"}
 
 	ctx := NewContext(3)
-	seq := NewSequence(
-		&MockCommand{name: "A"},
-		&MockCommand{name: "B"},
-		&MockCommand{name: "C"},
-	).(*sequence)
-
-	seq.DryRun(ctx, p)
+	seq := NewSequence(cmdA, cmdB, cmdC).(*sequence)
+	seq.DryRun(ctx, DefaultPrinter)
 	is.NoError(ctx.Err())
-	is.Equal("MOCK dry run A\nMOCK dry run B\nMOCK dry run C\n", out.String())
 }
 
 func TestSequence_Rollback_EmptySequence(t *testing.T) {
@@ -118,21 +124,20 @@ func TestSequence_Rollback_EmptySequence(t *testing.T) {
 
 func TestSequence_Rollback_Success(t *testing.T) {
 	is := assert.New(t)
-	p, out := getTestPrinter()
+
+	cmdA := &MockCommand{name: "A"}
+	cmdB := &MockCommand{name: "B"}
+	cmdC := &MockCommand{name: "C"}
 
 	ctx := NewContext(3)
-	seq := NewSequence(
-		&MockCommand{name: "A"},
-		&MockCommand{name: "B"},
-		&MockCommand{name: "C"},
-	).(*sequence)
-	err := errors.New("foobar")
+	seq := NewSequence(cmdA, cmdB, cmdC).(*sequence)
+	seq.Run(ctx, DefaultPrinter)
+	seq.Rollback(ctx, DefaultPrinter)
 
-	seq.Run(ctx, p)
-	out.Reset()
-	ctx.SetErr(err)
-	seq.Rollback(ctx, p)
-
-	is.Equal(err, ctx.Err())
-	is.Equal("MOCK rolling back C\nMOCK rolling back B\nMOCK rolling back A\n", out.String())
+	is.NoError(ctx.Err())
+	for _, cmd := range []*MockCommand{cmdA, cmdB, cmdC} {
+		is.True(cmd.ran)
+		is.False(cmd.failed)
+		is.True(cmd.rolledBack)
+	}
 }

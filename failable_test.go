@@ -29,57 +29,79 @@ func TestFailable_String(t *testing.T) {
 
 func TestFailable_Run_Success(t *testing.T) {
 	is := assert.New(t)
-	p, out := getTestPrinter()
-	f := MakeFailable(&MockCommand{name: "foo"})
+	cmd := &MockCommand{name: "foo"}
+	f := MakeFailable(cmd)
 
-	err := RunWithPrinter(p, f)
+	err := Run(f)
 	is.NoError(err)
-	is.Equal("MOCK running foo\n", out.String())
+
+	is.True(cmd.ran)
+	is.False(cmd.failed)
+	is.False(cmd.rolledBack)
 }
 
 func TestFailable_Run_Failure(t *testing.T) {
 	is := assert.New(t)
-	p, out := getTestPrinter()
-	err := errors.New("fizzbuzz")
-	f := MakeFailable(&MockCommand{name: "foo", err: err})
 
-	res := RunWithPrinter(p, f, &MockCommand{name: "bar"})
-	is.NoError(res)
-	is.Equal("MOCK running foo\nMOCK error foo: fizzbuzz\nfailure supressed: fizzbuzz\nMOCK running bar\n", out.String())
+	cmdA := &MockCommand{name: "foo", err: errors.New("")}
+	cmdB := &MockCommand{name: "bar"}
+
+	err := Run(MakeFailable(cmdA), cmdB)
+	is.NoError(err)
+
+	is.True(cmdA.ran)
+	is.True(cmdA.failed)
+	is.False(cmdA.rolledBack)
+
+	is.True(cmdB.ran)
+	is.False(cmdB.failed)
+	is.False(cmdB.rolledBack)
 }
 
 func TestFailable_Rollback_Success(t *testing.T) {
 	is := assert.New(t)
-	p, out := getTestPrinter()
-	err := errors.New("fizzbuzz")
 
-	res := RunWithPrinter(
-		p,
-		MakeFailable(&MockCommand{name: "foo"}),
-		&MockCommand{name: "bar", err: err},
-	)
-	is.Equal(err, res)
-	is.Equal("MOCK running foo\nMOCK running bar\nMOCK error bar: fizzbuzz\nMOCK rolling back foo\n", out.String())
+	cmdA := &MockCommand{name: "foo"}
+	cmdB := &MockCommand{name: "bar", err: errors.New("")}
+
+	res := Run(MakeFailable(cmdA), cmdB)
+	is.Equal(cmdB.err, res)
+
+	is.True(cmdA.ran)
+	is.False(cmdA.failed)
+	is.True(cmdA.rolledBack)
+
+	is.True(cmdB.ran)
+	is.True(cmdB.failed)
+	is.False(cmdB.rolledBack)
 }
 
 func TestFailable_Rollback_Failure(t *testing.T) {
 	is := assert.New(t)
-	p, out := getTestPrinter()
-	err := errors.New("fizzbuzz")
 
-	res := RunWithPrinter(
-		p,
-		MakeFailable(&MockCommand{name: "foo", err: errors.New("rawr")}),
-		&MockCommand{name: "bar", err: err},
-	)
-	is.Equal(err, res)
-	is.Equal("MOCK running foo\nMOCK error foo: rawr\nfailure supressed: rawr\nMOCK running bar\nMOCK error bar: fizzbuzz\nskipping rollback due to failure: rawr\n", out.String())
+	cmdA := &MockCommand{name: "fizz"}
+	cmdB := &MockCommand{name: "foo", err: errors.New("-")}
+	cmdC := &MockCommand{name: "bar", err: errors.New("=")}
+
+	err := Run(cmdA, MakeFailable(cmdB), cmdC)
+	is.Equal(cmdC.err, err)
+
+	is.True(cmdA.ran)
+	is.False(cmdA.failed)
+	is.True(cmdA.rolledBack)
+
+	is.True(cmdB.ran)
+	is.True(cmdB.failed)
+	is.False(cmdB.rolledBack)
+
+	is.True(cmdC.ran)
+	is.True(cmdC.failed)
+	is.False(cmdC.rolledBack)
 }
 
 func TestFailable_DryRun(t *testing.T) {
 	is := assert.New(t)
-	p, out := getTestPrinter()
-
-	DryRunWithPrinter(p, MakeFailable(&MockCommand{name: "foo"}))
-	is.Equal("MOCK dry run foo\n", out.String())
+	cmd := &MockCommand{name: "foo"}
+	DryRun(MakeFailable(cmd))
+	is.True(cmd.dryRan)
 }
