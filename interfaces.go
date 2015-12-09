@@ -1,15 +1,13 @@
 package runner
 
-import "golang.org/x/net/context"
-
 type Command interface {
-	Run(context.Context, Printer) context.Context
+	Run(*Context, Printer)
 }
 
 type Rollbacker interface {
-	Rollback(context.Context, Printer) context.Context
+	Rollback(*Context, Printer)
 }
 
 type DryRunner interface {
-	DryRun(context.Context, Printer) context.Context
+	DryRun(*Context, Printer)
 }

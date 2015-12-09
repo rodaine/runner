@@ -1,58 +1,93 @@
 package runner
 
-import (
-	"fmt"
-
-	"golang.org/x/net/context"
-)
+import "fmt"
 
 type sequence struct {
+	id   string
 	cmds []Command
 }
 
 func NewSequence(cmds ...Command) Command {
-	return &sequence{cmds: cmds}
+	return &sequence{
+		cmds: cmds,
+	}
 }
 
 func (s *sequence) String() string {
 	return fmt.Sprintf("%d Command Sequence", len(s.cmds))
 }
 
-func (s *sequence) Run(ctx context.Context, p Printer) context.Context {
+func (s *sequence) Run(ctx *Context, p Printer) {
+	ctx.push()
+	s.runSubCommands(ctx, p, s.cmds)
+}
 
-	var idx int
-	for idx = 0; idx < len(s.cmds); idx++ {
-		select {
-		case <-ctx.Done():
-			return s.rollbackFromIndex(ctx, p, idx-1)
-		default:
-			cmd := s.cmds[idx]
-			ctx = cmd.Run(ctx, p)
+func (s *sequence) Rollback(ctx *Context, p Printer) {
+	s.rollbackSubCommands(ctx, p, s.cmds)
+	ctx.pop()
+}
+
+func (s *sequence) DryRun(ctx *Context, p Printer) {
+	s.dryRunSubCommands(ctx, p, s.cmds)
+}
+
+func (s *sequence) runSubCommands(ctx *Context, p Printer, cmds []Command) {
+	// no Commands remain, or there is an existing error.
+	if len(cmds) == 0 || ctx.Err() != nil {
+		return
+	}
+
+	// run the next Command
+	ctx.push()
+	cmds[0].Run(ctx, p)
+
+	// if it was the last or there was an error, exit now
+	if len(cmds) == 1 || ctx.Err() != nil {
+		return
+	}
+
+	// run subsequent Commands
+	s.runSubCommands(ctx, p, cmds[1:])
+
+	// if there was an error from subsequent Commands, rollback if possible
+	if ctx.Err() != nil {
+		ctx.pop()
+		if cmd, ok := cmds[0].(Rollbacker); ok {
+			cmd.Rollback(ctx, p)
 		}
 	}
+}
 
-	select {
-	case <-ctx.Done():
-		return s.Rollback(ctx, p)
-	default:
-		return ctx
+func (s *sequence) rollbackSubCommands(ctx *Context, p Printer, cmds []Command) {
+	if len(cmds) == 0 {
+		return
 	}
-}
 
-func (s *sequence) Rollback(ctx context.Context, p Printer) context.Context {
-	return s.rollbackFromIndex(ctx, p, len(s.cmds)-1)
-}
-
-func (s *sequence) DryRun(ctx context.Context, p Printer) context.Context {
-	// TODO
-	return ctx
-}
-
-func (s *sequence) rollbackFromIndex(ctx context.Context, p Printer, idx int) context.Context {
-	for ; idx >= 0; idx-- {
-		if cmd, ok := s.cmds[idx].(Rollbacker); ok {
-			ctx = cmd.Rollback(ctx, p)
-		}
+	ctx.pop()
+	if cmd, ok := cmds[len(cmds)-1].(Rollbacker); ok {
+		cmd.Rollback(ctx, p)
 	}
-	return ctx
+
+	if len(cmds) == 1 {
+		return
+	}
+
+	s.rollbackSubCommands(ctx, p, cmds[:len(cmds)-1])
+}
+
+func (s *sequence) dryRunSubCommands(ctx *Context, p Printer, cmds []Command) {
+	if len(cmds) == 0 {
+		return
+	}
+
+	ctx.push()
+	if cmd, ok := cmds[0].(DryRunner); ok {
+		cmd.DryRun(ctx, p)
+	}
+
+	if len(cmds) == 1 {
+		return
+	}
+
+	s.dryRunSubCommands(ctx, p, cmds[1:])
 }

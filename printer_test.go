@@ -48,11 +48,11 @@ func TestPrinter_Log(t *testing.T) {
 	is.Empty(out.String())
 	out.Reset()
 
-	p.Error("fizz")
+	p.Err("fizz")
 	is.Equal("fizz\n", out.String())
 	out.Reset()
 	p.priority = PRIORITY_FATAL
-	p.Error("buzz")
+	p.Err("buzz")
 	is.Empty(out.String())
 	out.Reset()
 

@@ -1,12 +1,11 @@
 package runner
 
-import "golang.org/x/net/context"
-
-func Run(ctx context.Context, cmds ...Command) error {
-	return RunWithPrinter(ctx, DefaultPrinter, cmds...)
+func Run(cmds ...Command) error {
+	return RunWithPrinter(DefaultPrinter, cmds...)
 }
 
-func RunWithPrinter(ctx context.Context, p Printer, cmds ...Command) error {
-	seq := NewSequence(cmds...)
-	return seq.Run(ctx, p).Err()
+func RunWithPrinter(p Printer, cmds ...Command) error {
+	ctx := NewContext(0)
+	NewSequence(cmds...).Run(ctx, p)
+	return ctx.Err()
 }
