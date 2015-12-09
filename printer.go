@@ -33,7 +33,7 @@ type Printer interface {
 	Debug(format string, values ...interface{})
 	Info(format string, values ...interface{})
 	Warn(format string, values ...interface{})
-	Error(format string, values ...interface{})
+	Err(format string, values ...interface{})
 	Fatal(format string, values ...interface{})
 
 	WithPrefix(prefix string) Printer
@@ -89,7 +89,7 @@ func (p *printer) Warn(format string, values ...interface{}) {
 	p.Log(PRIORITY_WARN, format, values...)
 }
 
-func (p *printer) Error(format string, values ...interface{}) {
+func (p *printer) Err(format string, values ...interface{}) {
 	p.Log(PRIORITY_ERROR, format, values...)
 }
 
