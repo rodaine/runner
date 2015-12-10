@@ -29,7 +29,7 @@ func TestSequence_Run_EmptySequence(t *testing.T) {
 	is := assert.New(t)
 	p, out := getTestPrinter()
 
-	ctx := NewContext(0)
+	ctx := NewContext()
 	seq := NewSequence()
 
 	seq.Run(ctx, p)
@@ -44,7 +44,7 @@ func TestSequence_Run_Success(t *testing.T) {
 	cmdB := &MockCommand{name: "B"}
 	cmdC := &MockCommand{name: "C"}
 
-	ctx := NewContext(3)
+	ctx := NewContext()
 	seq := NewSequence(cmdA, cmdB, cmdC)
 	seq.Run(ctx, DefaultPrinter)
 
@@ -65,7 +65,7 @@ func TestSequence_Run_Rollback(t *testing.T) {
 	cmdC := &MockCommand{name: "C", err: err}
 	cmdD := &MockCommand{name: "D"}
 
-	ctx := NewContext(3)
+	ctx := NewContext()
 	seq := NewSequence(cmdA, cmdB, cmdC, cmdD)
 	seq.Run(ctx, DefaultPrinter)
 
@@ -84,7 +84,7 @@ func TestSequence_DryRun_EmptySequence(t *testing.T) {
 	is := assert.New(t)
 	p, out := getTestPrinter()
 
-	ctx := NewContext(0)
+	ctx := NewContext()
 	seq := NewSequence().(*sequence)
 
 	seq.DryRun(ctx, p)
@@ -99,7 +99,7 @@ func TestSequence_DryRun_Success(t *testing.T) {
 	cmdB := &MockCommand{name: "B"}
 	cmdC := &MockCommand{name: "C"}
 
-	ctx := NewContext(3)
+	ctx := NewContext()
 	seq := NewSequence(cmdA, cmdB, cmdC).(*sequence)
 	seq.DryRun(ctx, DefaultPrinter)
 	is.NoError(ctx.Err())
@@ -109,7 +109,7 @@ func TestSequence_Rollback_EmptySequence(t *testing.T) {
 	is := assert.New(t)
 	p, out := getTestPrinter()
 
-	ctx := NewContext(0)
+	ctx := NewContext()
 	seq := NewSequence().(*sequence)
 	err := errors.New("foobar")
 
@@ -129,7 +129,7 @@ func TestSequence_Rollback_Success(t *testing.T) {
 	cmdB := &MockCommand{name: "B"}
 	cmdC := &MockCommand{name: "C"}
 
-	ctx := NewContext(3)
+	ctx := NewContext()
 	seq := NewSequence(cmdA, cmdB, cmdC).(*sequence)
 	seq.Run(ctx, DefaultPrinter)
 	seq.Rollback(ctx, DefaultPrinter)

@@ -1,52 +1,72 @@
 package runner
 
 import (
-	"errors"
 	"testing"
+
+	"errors"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func TestState_Error(t *testing.T) {
-	is := assert.New(t)
-	s := NewContext(0)
-	is.NoError(s.Err())
-
-	err := errors.New("test")
-	s.SetErr(err)
-	is.Equal(err, s.Err())
+func TestContext_Pop_Root(t *testing.T) {
+	assert.Panics(t, func() {
+		NewContext().pop()
+	}, "root context should panic if popped")
 }
 
-func TestState_GetSet(t *testing.T) {
+func TestContext_Errors(t *testing.T) {
 	is := assert.New(t)
-	s := NewContext(2)
-	s.push()
+	err := errors.New("foobar")
 
-	// should return nil if not set
-	actual := s.Get("foo")
-	is.Nil(actual)
+	ctx := NewContext()
+	is.NoError(ctx.Err(), "initially there should be no error")
 
-	// should have no issue pulling from current context
-	s.Set("foo", "bar")
-	actual, ok := s.Get("foo").(string)
-	is.True(ok)
-	is.Equal("bar", actual)
+	ctx.push()
+	is.NoError(ctx.Err(), "child contexts should also have no error")
 
-	// should dig deeper if not on current context
-	s.push()
-	actual, ok = s.Get("foo").(string)
-	is.True(ok)
-	is.Equal("bar", actual)
+	ctx.SetErr(err)
+	is.Equal(err, ctx.Err(), "child contexts should see set error")
 
-	// should be overwritten by more-recent stack
-	s.Set("foo", "baz")
-	actual, ok = s.Get("foo").(string)
-	is.True(ok)
-	is.Equal("baz", actual)
+	ctx.pop()
+	is.Equal(err, ctx.Err(), "error should be propogated to parent")
+}
 
-	// previous value should still be available after pop
-	s.pop()
-	actual, ok = s.Get("foo").(string)
-	is.True(ok)
-	is.Equal("bar", actual)
+func TestContext_GetSet(t *testing.T) {
+	is := assert.New(t)
+	key := "foo"
+	unknown := "fizz"
+	val := "bar"
+
+	ctx := NewContext()
+	out, found := ctx.Get(unknown)
+	is.False(found, "unknown kv should not be found")
+
+	ctx.Set(key, val)
+	out, found = ctx.Get(key)
+	is.True(found, "known kv should be found")
+	is.Equal(val, out, "known kv should match")
+
+	ctx.push()
+	out, found = ctx.Get(unknown)
+	is.False(found, "unknown kv should not be found on child")
+
+	out, found = ctx.Get(key)
+	is.True(found, "known kv set on parent should be available on child")
+	is.Equal(val, out, "known kv should have same value as parent")
+
+	ctx.Set(unknown, "buzz")
+	out, found = ctx.Get(unknown)
+	is.True(found, "now set unknown kv should be found on child")
+
+	newVal := "baz"
+	ctx.Set(key, newVal)
+	out, found = ctx.Get(key)
+	is.Equal(newVal, out, "new key value should be on the child")
+
+	ctx.pop()
+	out, found = ctx.Get(unknown)
+	is.False(found, "parent should not know about kvs set by children")
+
+	out, found = ctx.Get(key)
+	is.Equal(val, out, "parent should not know new value for kv set by children")
 }

@@ -1,13 +1,13 @@
 package runner
 
 type Command interface {
-	Run(*Context, Printer)
+	Run(Context, Printer)
 }
 
 type Rollbacker interface {
-	Rollback(*Context, Printer)
+	Rollback(Context, Printer)
 }
 
 type DryRunner interface {
-	DryRun(*Context, Printer)
+	DryRun(Context, Printer)
 }

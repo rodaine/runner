@@ -6,7 +6,7 @@ func Run(cmds ...Command) error {
 
 func RunWithPrinter(p Printer, cmds ...Command) error {
 	// TODO: estimate depth
-	ctx := NewContext(0)
+	ctx := NewContext()
 	(&sequence{cmds: cmds}).Run(ctx, p)
 	return ctx.Err()
 }
@@ -17,6 +17,6 @@ func DryRun(cmds ...Command) {
 
 func DryRunWithPrinter(p Printer, cmds ...Command) {
 	// TODO: estimate depth
-	ctx := NewContext(0)
+	ctx := NewContext()
 	(&sequence{cmds: cmds}).DryRun(ctx, p)
 }
