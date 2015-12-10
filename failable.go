@@ -21,7 +21,7 @@ func (f *failable) String() string {
 	return fmt.Sprintf("%s [failable]", f.cmd)
 }
 
-func (f *failable) Run(ctx *Context, p Printer) {
+func (f *failable) Run(ctx Context, p Printer) {
 	f.cmd.Run(ctx, p)
 
 	err := ctx.Err()
@@ -33,10 +33,12 @@ func (f *failable) Run(ctx *Context, p Printer) {
 	}
 }
 
-func (f *failable) Rollback(ctx *Context, p Printer) {
-	if err, ok := ctx.Get(f.id).(error); ok && err != nil {
-		p.Warn("skipping rollback due to failure: %v", err)
-		return
+func (f *failable) Rollback(ctx Context, p Printer) {
+	if val, found := ctx.Get(f.id); found {
+		if err, ok := val.(error); ok && err != nil {
+			p.Warn("skipping rollback due to failure: %v", err)
+			return
+		}
 	}
 
 	if cmd, ok := f.cmd.(Rollbacker); ok {
@@ -44,7 +46,7 @@ func (f *failable) Rollback(ctx *Context, p Printer) {
 	}
 }
 
-func (f *failable) DryRun(ctx *Context, p Printer) {
+func (f *failable) DryRun(ctx Context, p Printer) {
 	if cmd, ok := f.cmd.(DryRunner); ok {
 		cmd.DryRun(ctx, p)
 	}

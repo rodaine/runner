@@ -16,7 +16,7 @@ func (c *MockCommand) String() string {
 	return fmt.Sprintf("MOCK %s", c.name)
 }
 
-func (c *MockCommand) Run(ctx *Context, p Printer) {
+func (c *MockCommand) Run(ctx Context, p Printer) {
 	p.Info("MOCK running %s", c.name)
 	c.ran = true
 
@@ -27,12 +27,12 @@ func (c *MockCommand) Run(ctx *Context, p Printer) {
 	}
 }
 
-func (c *MockCommand) Rollback(ctx *Context, p Printer) {
+func (c *MockCommand) Rollback(ctx Context, p Printer) {
 	p.Info("MOCK rolling back %s", c.name)
 	c.rolledBack = true
 }
 
-func (c *MockCommand) DryRun(ctx *Context, p Printer) {
+func (c *MockCommand) DryRun(ctx Context, p Printer) {
 	p.Info("MOCK dry run %s", c.name)
 	c.dryRan = true
 }

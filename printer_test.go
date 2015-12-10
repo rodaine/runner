@@ -7,9 +7,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func getTestPrinter() (*printer, *bytes.Buffer) {
+func getTestPrinter() (*stdPrinter, *bytes.Buffer) {
 	buf := &bytes.Buffer{}
-	return (NewPrinter(buf, PRIORITY_ALL)).(*printer), buf
+	return (NewPrinter(buf, PRIORITY_ALL)).(*stdPrinter), buf
 }
 
 func TestPrinter_Log(t *testing.T) {

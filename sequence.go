@@ -17,21 +17,21 @@ func (s *sequence) String() string {
 	return fmt.Sprintf("%d Command Sequence", len(s.cmds))
 }
 
-func (s *sequence) Run(ctx *Context, p Printer) {
+func (s *sequence) Run(ctx Context, p Printer) {
 	ctx.push()
 	s.runSubCommands(ctx, p, s.cmds)
 }
 
-func (s *sequence) Rollback(ctx *Context, p Printer) {
+func (s *sequence) Rollback(ctx Context, p Printer) {
 	s.rollbackSubCommands(ctx, p, s.cmds)
 	ctx.pop()
 }
 
-func (s *sequence) DryRun(ctx *Context, p Printer) {
+func (s *sequence) DryRun(ctx Context, p Printer) {
 	s.dryRunSubCommands(ctx, p, s.cmds)
 }
 
-func (s *sequence) runSubCommands(ctx *Context, p Printer, cmds []Command) {
+func (s *sequence) runSubCommands(ctx Context, p Printer, cmds []Command) {
 	// no Commands remain, or there is an existing error.
 	if len(cmds) == 0 || ctx.Err() != nil {
 		return
@@ -58,7 +58,7 @@ func (s *sequence) runSubCommands(ctx *Context, p Printer, cmds []Command) {
 	}
 }
 
-func (s *sequence) rollbackSubCommands(ctx *Context, p Printer, cmds []Command) {
+func (s *sequence) rollbackSubCommands(ctx Context, p Printer, cmds []Command) {
 	if len(cmds) == 0 {
 		return
 	}
@@ -75,7 +75,7 @@ func (s *sequence) rollbackSubCommands(ctx *Context, p Printer, cmds []Command) 
 	s.rollbackSubCommands(ctx, p, cmds[:len(cmds)-1])
 }
 
-func (s *sequence) dryRunSubCommands(ctx *Context, p Printer, cmds []Command) {
+func (s *sequence) dryRunSubCommands(ctx Context, p Printer, cmds []Command) {
 	if len(cmds) == 0 {
 		return
 	}

@@ -42,7 +42,7 @@ type Printer interface {
 	EndCommand(cmd Command, start time.Time)
 }
 
-type printer struct {
+type stdPrinter struct {
 	parent   Printer
 	w        io.Writer
 	priority Priority
@@ -50,13 +50,13 @@ type printer struct {
 }
 
 func NewPrinter(w io.Writer, priority Priority) Printer {
-	return &printer{
+	return &stdPrinter{
 		w:        w,
 		priority: priority,
 	}
 }
 
-func (p *printer) Log(lvl Priority, format string, values ...interface{}) {
+func (p *stdPrinter) Log(lvl Priority, format string, values ...interface{}) {
 	if p.parent != nil {
 		p.parent.Log(lvl, p.prefix+format, values...)
 		return
@@ -73,43 +73,43 @@ func (p *printer) Log(lvl Priority, format string, values ...interface{}) {
 	}
 }
 
-func (p *printer) Trace(format string, values ...interface{}) {
+func (p *stdPrinter) Trace(format string, values ...interface{}) {
 	p.Log(PRIORITY_TRACE, format, values...)
 }
 
-func (p *printer) Debug(format string, values ...interface{}) {
+func (p *stdPrinter) Debug(format string, values ...interface{}) {
 	p.Log(PRIORITY_DEBUG, format, values...)
 }
 
-func (p *printer) Info(format string, values ...interface{}) {
+func (p *stdPrinter) Info(format string, values ...interface{}) {
 	p.Log(PRIORITY_INFO, format, values...)
 }
 
-func (p *printer) Warn(format string, values ...interface{}) {
+func (p *stdPrinter) Warn(format string, values ...interface{}) {
 	p.Log(PRIORITY_WARN, format, values...)
 }
 
-func (p *printer) Err(format string, values ...interface{}) {
+func (p *stdPrinter) Err(format string, values ...interface{}) {
 	p.Log(PRIORITY_ERROR, format, values...)
 }
 
-func (p *printer) Fatal(format string, values ...interface{}) {
+func (p *stdPrinter) Fatal(format string, values ...interface{}) {
 	p.Log(PRIORITY_FATAL, format, values...)
 }
 
-func (p *printer) WithPrefix(prefix string) Printer {
-	return &printer{
+func (p *stdPrinter) WithPrefix(prefix string) Printer {
+	return &stdPrinter{
 		parent: p,
 		prefix: prefix,
 	}
 }
 
-func (p *printer) StartCommand(cmd Command) time.Time {
+func (p *stdPrinter) StartCommand(cmd Command) time.Time {
 	p.Info(startCommandFormat, cmd)
 	return time.Now()
 }
 
-func (p *printer) EndCommand(cmd Command, start time.Time) {
+func (p *stdPrinter) EndCommand(cmd Command, start time.Time) {
 	p.Info(endCommandFormat, cmd, time.Since(start))
 }
 
