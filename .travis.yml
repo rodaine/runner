@@ -16,6 +16,7 @@ install:
 
 script:
   - gofmt -l .
+  - golint ./...
   - go tool vet -test .
   - errcheck ./...
   - goveralls -service=travis-ci
