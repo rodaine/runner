@@ -7,6 +7,14 @@ type sequence struct {
 	cmds []Command
 }
 
+// NewSequence returns a Command that executes the passed in cmds in series, threading the Context through. Commands
+// passed into Run, RunWithPrinter, DryRun, and DryRunWithPrinter are initially wrapped by this Command.
+//
+// If a Command within the sequence fails, execution stops and a rollback is performed over any previously run Commands
+// in reverse order. Commands that don't satisfy the Rollbacker or DryRunner interfaces are noted and skipped during a
+// rollback or dry run, respectively.
+//
+// This command implements the Rollbacker and DryRunner interfaces.
 func NewSequence(cmds ...Command) Command {
 	return &sequence{
 		cmds: cmds,

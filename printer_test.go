@@ -9,7 +9,7 @@ import (
 
 func getTestPrinter() (*stdPrinter, *bytes.Buffer) {
 	buf := &bytes.Buffer{}
-	return (NewPrinter(buf, PRIORITY_ALL)).(*stdPrinter), buf
+	return (NewPrinter(buf, LevelAll)).(*stdPrinter), buf
 }
 
 func TestPrinter_Log(t *testing.T) {
@@ -19,7 +19,7 @@ func TestPrinter_Log(t *testing.T) {
 	p.Trace("foo")
 	is.Equal("foo\n", out.String())
 	out.Reset()
-	p.priority = PRIORITY_DEBUG
+	p.level = LevelDebug
 	p.Trace("bar")
 	is.Empty(out.String())
 	out.Reset()
@@ -27,7 +27,7 @@ func TestPrinter_Log(t *testing.T) {
 	p.Debug("fizz")
 	is.Equal("fizz\n", out.String())
 	out.Reset()
-	p.priority = PRIORITY_INFO
+	p.level = LevelInfo
 	p.Debug("buzz")
 	is.Empty(out.String())
 	out.Reset()
@@ -35,7 +35,7 @@ func TestPrinter_Log(t *testing.T) {
 	p.Info("alpha")
 	is.Equal("alpha\n", out.String())
 	out.Reset()
-	p.priority = PRIORITY_WARN
+	p.level = LevelWarn
 	p.Info("beta")
 	is.Empty(out.String())
 	out.Reset()
@@ -43,7 +43,7 @@ func TestPrinter_Log(t *testing.T) {
 	p.Warn("foo")
 	is.Equal("foo\n", out.String())
 	out.Reset()
-	p.priority = PRIORITY_ERROR
+	p.level = LevelError
 	p.Warn("bar")
 	is.Empty(out.String())
 	out.Reset()
@@ -51,7 +51,7 @@ func TestPrinter_Log(t *testing.T) {
 	p.Err("fizz")
 	is.Equal("fizz\n", out.String())
 	out.Reset()
-	p.priority = PRIORITY_FATAL
+	p.level = LevelFatal
 	p.Err("buzz")
 	is.Empty(out.String())
 	out.Reset()
@@ -59,7 +59,7 @@ func TestPrinter_Log(t *testing.T) {
 	p.Fatal("alpha")
 	is.Equal("alpha\n", out.String())
 	out.Reset()
-	p.priority = PRIORITY_OFF
+	p.level = LevelOff
 	p.Fatal("beta")
 	is.Empty(out.String())
 	out.Reset()

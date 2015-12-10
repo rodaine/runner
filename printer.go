@@ -4,65 +4,82 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"time"
 )
 
+// A LogLevel value describes the minimum logging verbosity for a Printer to output messages passed to it. Messages with
+// a lower LogLevel should be suppressed by the Printer implementation.
+type LogLevel int8
+
+// LogLevel constants are provided in descending order of verbosity. These constants (excluding LevelAll and LevelOff)
+// correspond with the similarly named methods on the Printer.
 const (
-	startCommandFormat = "=== RUN %s"
-	endCommandFormat   = "--- END %s (%s)"
-
-	SubCommandPrefix = "   "
+	LevelAll LogLevel = iota
+	LevelTrace
+	LevelDebug
+	LevelInfo
+	LevelWarn
+	LevelError
+	LevelFatal
+	LevelOff
 )
 
-const (
-	PRIORITY_ALL Priority = iota
-	PRIORITY_TRACE
-	PRIORITY_DEBUG
-	PRIORITY_INFO
-	PRIORITY_WARN
-	PRIORITY_ERROR
-	PRIORITY_FATAL
-	PRIORITY_OFF
-)
-
-type Priority int8
-
+// A Printer is passed into every command and should be used exclusively for logging the behavior of a command. Direct
+// use of the fmt or log packages is for maintaining the cleanliness of the output. All logging methods should emulate
+// fmt.Printf interpolation.
 type Printer interface {
-	Log(lvl Priority, format string, values ...interface{})
+	// Log writes an arbitrary message at the given LogLevel. Commands should not call this method directly, and instead
+	// use the other exposed logging methods. This method is exposed for Printer implementations that compose with other
+	// printers for more direct access to their logging logic.
+	Log(level LogLevel, format string, values ...interface{})
+
+	// Trace should be used for high-noise debug information.
 	Trace(format string, values ...interface{})
+
+	// Debug should be used for detailed information on the flow through the command.
 	Debug(format string, values ...interface{})
+
+	// Info should be used for interesting runtime events. This is the minimum level for the DefaultPrinter, so be
+	// conservative and keep to a minimum
 	Info(format string, values ...interface{})
+
+	// Warn should be used for deprecations, incorrect use of a command, "almost" errors, other situations that are
+	// undesirable or unexpected, but not necessarily "wrong". Presence of warn messages may not predicate a rollback.
 	Warn(format string, values ...interface{})
+
+	// Error should for runtime errors or unexpected conditions. Presence of error messages should precede a rollback.
 	Err(format string, values ...interface{})
+
+	// Fatal should be used for severe errors that should result in termination of all commands, foregoing even a
+	// rollback. It is expected that the program will either panic or exit immediately after these logs.
 	Fatal(format string, values ...interface{})
 
+	// WithPrefix should return a new printer that prefixes all messages with the provided string.
 	WithPrefix(prefix string) Printer
+}
 
-	StartCommand(cmd Command) time.Time
-	EndCommand(cmd Command, start time.Time)
+// NewPrinter returns a standard Printer which writes all logs to the provided io.Writer. LogLevels below the provided
+// level are suppressed from output.
+func NewPrinter(w io.Writer, level LogLevel) Printer {
+	return &stdPrinter{
+		w:     w,
+		level: level,
+	}
 }
 
 type stdPrinter struct {
-	parent   Printer
-	w        io.Writer
-	priority Priority
-	prefix   string
+	parent Printer
+	w      io.Writer
+	level  LogLevel
+	prefix string
 }
 
-func NewPrinter(w io.Writer, priority Priority) Printer {
-	return &stdPrinter{
-		w:        w,
-		priority: priority,
-	}
-}
-
-func (p *stdPrinter) Log(lvl Priority, format string, values ...interface{}) {
+func (p *stdPrinter) Log(level LogLevel, format string, values ...interface{}) {
 	if p.parent != nil {
-		p.parent.Log(lvl, p.prefix+format, values...)
+		p.parent.Log(level, p.prefix+format, values...)
 		return
 	}
 
-	if lvl < p.priority {
+	if level < p.level {
 		return
 	}
 
@@ -74,27 +91,27 @@ func (p *stdPrinter) Log(lvl Priority, format string, values ...interface{}) {
 }
 
 func (p *stdPrinter) Trace(format string, values ...interface{}) {
-	p.Log(PRIORITY_TRACE, format, values...)
+	p.Log(LevelTrace, format, values...)
 }
 
 func (p *stdPrinter) Debug(format string, values ...interface{}) {
-	p.Log(PRIORITY_DEBUG, format, values...)
+	p.Log(LevelDebug, format, values...)
 }
 
 func (p *stdPrinter) Info(format string, values ...interface{}) {
-	p.Log(PRIORITY_INFO, format, values...)
+	p.Log(LevelInfo, format, values...)
 }
 
 func (p *stdPrinter) Warn(format string, values ...interface{}) {
-	p.Log(PRIORITY_WARN, format, values...)
+	p.Log(LevelWarn, format, values...)
 }
 
 func (p *stdPrinter) Err(format string, values ...interface{}) {
-	p.Log(PRIORITY_ERROR, format, values...)
+	p.Log(LevelError, format, values...)
 }
 
 func (p *stdPrinter) Fatal(format string, values ...interface{}) {
-	p.Log(PRIORITY_FATAL, format, values...)
+	p.Log(LevelFatal, format, values...)
 }
 
 func (p *stdPrinter) WithPrefix(prefix string) Printer {
@@ -104,13 +121,5 @@ func (p *stdPrinter) WithPrefix(prefix string) Printer {
 	}
 }
 
-func (p *stdPrinter) StartCommand(cmd Command) time.Time {
-	p.Info(startCommandFormat, cmd)
-	return time.Now()
-}
-
-func (p *stdPrinter) EndCommand(cmd Command, start time.Time) {
-	p.Info(endCommandFormat, cmd, time.Since(start))
-}
-
-var DefaultPrinter = NewPrinter(os.Stdout, PRIORITY_INFO)
+// DefaultPrinter writes to os.stdOut at the Info LogLevel. It is the printer used by Run and DryRun.
+var DefaultPrinter = NewPrinter(os.Stdout, LevelInfo)

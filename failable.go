@@ -10,6 +10,13 @@ type failable struct {
 	cmd Command
 }
 
+// MakeFailable returns a Command that wraps another Command and suppresses any errors raised within. This Command will
+// never trigger a rollback. Sequence Commands wrapped by MakeFailable will still rollback internally if a sub-Command
+// fails, however the raised error is suppressed.
+//
+// If a rollback occurs, Commands wrapped by MakeFailable will only be rolled back if they did not fail internally.
+//
+// This command implements the Rollbacker and DryRunner interfaces.
 func MakeFailable(cmd Command) Command {
 	return &failable{
 		id:  fmt.Sprintf("failable%d", rand.Int()),
