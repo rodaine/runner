@@ -13,11 +13,7 @@ func newSubContext(parent Context) Context {
 }
 
 func (sc *subCtx) Err() error {
-	err := sc.ctx.Err()
-	if sc.ctx.Err() == nil {
-		err = sc.parent.Err()
-	}
-	return err
+	return sc.ctx.Err()
 }
 
 func (sc *subCtx) SetErr(err error) {
@@ -41,4 +37,8 @@ func (sc *subCtx) push() {
 
 func (sc *subCtx) pop() {
 	sc.ctx.pop()
+}
+
+func (sc *subCtx) unsetErr() {
+	sc.ctx.unsetErr()
 }

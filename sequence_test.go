@@ -104,6 +104,25 @@ func TestSequence_DryRun_Success(t *testing.T) {
 	is.NoError(ctx.Err())
 }
 
+func TestSequence_DryRun_Fail(t *testing.T) {
+	is := assert.New(t)
+	err := errors.New("foobar")
+
+	cmdA := &MockCommand{name: "A"}
+	cmdB := &MockCommand{name: "B", err: err}
+	cmdC := &MockCommand{name: "C"}
+
+	ctx := NewContext()
+	seq := NewSequence(cmdA, cmdB, cmdC).(*sequence)
+	seq.DryRun(ctx, DefaultPrinter)
+
+	is.Equal(err, ctx.Err())
+	is.True(cmdA.dryRan)
+	is.True(cmdB.dryRan)
+	is.True(cmdB.failed)
+	is.False(cmdC.dryRan)
+}
+
 func TestSequence_Rollback_EmptySequence(t *testing.T) {
 	is := assert.New(t)
 	p, out := getTestPrinter()

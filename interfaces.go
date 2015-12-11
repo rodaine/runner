@@ -16,7 +16,8 @@ type Command interface {
 }
 
 // Rollbacker can be implemented by Commands that are reversible in the event of a downstream failure. A Rollbacker
-// will have access to the same Context when the Command's Run method was executed.
+// will have access to the same Context when the Command's Run method was executed. The error that triggered the
+// rollback may not be available in the Context, so its value should not be relied upon.
 //
 // Commands that don't implement Rollbacker will be skipped over during a rollback; they will not halt the execution.
 type Rollbacker interface {

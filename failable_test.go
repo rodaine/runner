@@ -99,9 +99,20 @@ func TestFailable_Rollback_Failure(t *testing.T) {
 	is.False(cmdC.rolledBack)
 }
 
-func TestFailable_DryRun(t *testing.T) {
+func TestFailable_DryRun_Success(t *testing.T) {
 	is := assert.New(t)
 	cmd := &MockCommand{name: "foo"}
 	DryRun(MakeFailable(cmd))
+	is.True(cmd.dryRan)
+}
+
+func TestFailable_DryRun_Failure(t *testing.T) {
+	is := assert.New(t)
+	cmd := &MockCommand{name: "foo", err: errors.New("bar")}
+
+	ctx := NewContext()
+	MakeFailable(cmd).(*failable).DryRun(ctx, DefaultPrinter)
+
+	is.NoError(ctx.Err())
 	is.True(cmd.dryRan)
 }

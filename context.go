@@ -10,8 +10,8 @@ type Context interface {
 	// a rollback is triggered starting with the previous Command and proceeds in reverse order.
 	Err() error
 
-	// SetErr allows a command to indicate the Command has failed and should trigger a rollback.
-	// TODO: Prevent non-Failable commands from un-setting an existing error.
+	// SetErr allows a command to indicate the Command has failed and should trigger a rollback. Once an error is set, it
+	// cannot be unset (unless the Command has been made failable).
 	SetErr(err error)
 
 	// Get returns a stored value from the Context, as well as indicated whether or not a value was found for that key.
@@ -25,6 +25,7 @@ type Context interface {
 
 	push()
 	pop()
+	unsetErr()
 }
 
 // NewContext returns a new root context. This function is a utility to aid in testing Command implementations.
@@ -50,6 +51,10 @@ func (ctx *ctx) Err() error {
 }
 
 func (ctx *ctx) SetErr(err error) {
+	if ctx.Err() != nil {
+		return
+	}
+
 	ctx.Lock()
 	ctx.err = err
 	ctx.Unlock()
@@ -83,4 +88,10 @@ func (ctx *ctx) pop() {
 		panic("cannot pop root context")
 	}
 	ctx.kvs = ctx.kvs[:len(ctx.kvs)-1]
+}
+
+func (ctx *ctx) unsetErr() {
+	ctx.Lock()
+	ctx.err = nil
+	ctx.Unlock()
 }

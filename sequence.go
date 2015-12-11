@@ -35,7 +35,6 @@ func (s *sequence) Rollback(ctx Context, p Printer) {
 	ctx.pop()
 }
 
-// TODO: DryRun should halt execution if a command fails
 func (s *sequence) DryRun(ctx Context, p Printer) {
 	s.dryRunSubCommands(ctx, p, s.cmds)
 }
@@ -85,7 +84,7 @@ func (s *sequence) rollbackSubCommands(ctx Context, p Printer, cmds []Command) {
 }
 
 func (s *sequence) dryRunSubCommands(ctx Context, p Printer, cmds []Command) {
-	if len(cmds) == 0 {
+	if len(cmds) == 0 || ctx.Err() != nil {
 		return
 	}
 

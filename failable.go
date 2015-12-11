@@ -30,14 +30,7 @@ func (f *failable) String() string {
 
 func (f *failable) Run(ctx Context, p Printer) {
 	f.cmd.Run(ctx, p)
-
-	err := ctx.Err()
-	ctx.Set(f.id, err)
-
-	if err != nil {
-		p.Warn("failure supressed: %v", err)
-		ctx.SetErr(nil)
-	}
+	f.suppressError(ctx, p)
 }
 
 func (f *failable) Rollback(ctx Context, p Printer) {
@@ -53,9 +46,19 @@ func (f *failable) Rollback(ctx Context, p Printer) {
 	}
 }
 
-// TODO: Failable should still capture error like Run
 func (f *failable) DryRun(ctx Context, p Printer) {
 	if cmd, ok := f.cmd.(DryRunner); ok {
 		cmd.DryRun(ctx, p)
+		f.suppressError(ctx, p)
+	}
+}
+
+func (f *failable) suppressError(ctx Context, p Printer) {
+	err := ctx.Err()
+	ctx.Set(f.id, err)
+
+	if err != nil {
+		p.Warn("failure supressed: %v", err)
+		ctx.unsetErr()
 	}
 }
