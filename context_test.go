@@ -29,6 +29,12 @@ func TestContext_Errors(t *testing.T) {
 
 	ctx.pop()
 	is.Equal(err, ctx.Err(), "error should be propogated to parent")
+
+	ctx.SetErr(nil)
+	is.Equal(err, ctx.Err(), "errors cannot be unset via SetErr")
+
+	ctx.unsetErr()
+	is.NoError(ctx.Err(), "errors can only be unset via unsetErr")
 }
 
 func TestContext_GetSet(t *testing.T) {

@@ -172,4 +172,21 @@ func TestParallel_DryRun_Fail(t *testing.T) {
 
 }
 
-// TODO: Test a downstream Command failing + rollback into Parallel Command
+func TestParallel_InFailingSequence(t *testing.T) {
+	is := assert.New(t)
+	err := errors.New("foo")
+
+	cmdA := &MockCommand{name: "A"}
+	cmdB := &MockCommand{name: "B"}
+	cmdC := &MockCommand{name: "C", err: err}
+
+	ctx := NewContext()
+	NewSequence(MakeParallel(cmdA, cmdB), cmdC).Run(ctx, DefaultPrinter)
+
+	is.Equal(err, ctx.Err())
+	for _, cmd := range []*MockCommand{cmdA, cmdB} {
+		is.True(cmd.ran)
+		is.False(cmd.failed)
+		is.True(cmd.rolledBack)
+	}
+}

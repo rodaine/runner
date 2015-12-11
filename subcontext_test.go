@@ -30,13 +30,19 @@ func TestSubContext_Errors(t *testing.T) {
 	sctx.SetErr(err)
 	is.Equal(err, sctx.Err(), "child subcontexts should see set error")
 
+	sctx.SetErr(nil)
+	is.Equal(err, sctx.Err(), "subcontext errors cannot be unset via SetErr")
+
 	sctx.pop()
 	is.Equal(err, sctx.Err(), "error should propogate to subcontext parent")
 	is.NoError(ctx.Err(), "parent context should not see errors in subcontext")
 
+	sctx.unsetErr()
+	is.NoError(sctx.Err(), "subcontext errors can only be unset via unsetErr")
+
 	ctx.SetErr(err)
 	sctx = newSubContext(ctx)
-	is.Equal(err, sctx.Err(), "subcontext should see parent errors")
+	is.NoError(sctx.Err(), "subcontext should not see parent errors")
 }
 
 func TestSubContext_GetSet(t *testing.T) {
