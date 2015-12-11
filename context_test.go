@@ -9,12 +9,14 @@ import (
 )
 
 func TestContext_Pop_Root(t *testing.T) {
+	t.Parallel()
 	assert.Panics(t, func() {
 		NewContext().pop()
 	}, "root context should panic if popped")
 }
 
 func TestContext_Errors(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 	err := errors.New("foobar")
 
@@ -38,6 +40,7 @@ func TestContext_Errors(t *testing.T) {
 }
 
 func TestContext_GetSet(t *testing.T) {
+	t.Parallel()
 	is := assert.New(t)
 	key := "foo"
 	unknown := "fizz"

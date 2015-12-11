@@ -9,6 +9,8 @@ import (
 )
 
 func TestSubContext_Pop_Root(t *testing.T) {
+	t.Parallel()
+
 	assert.Panics(t, func() {
 		ctx := NewContext()
 		ctx.push()
@@ -17,6 +19,8 @@ func TestSubContext_Pop_Root(t *testing.T) {
 }
 
 func TestSubContext_Errors(t *testing.T) {
+	t.Parallel()
+
 	is := assert.New(t)
 	err := errors.New("foobar")
 
@@ -46,6 +50,8 @@ func TestSubContext_Errors(t *testing.T) {
 }
 
 func TestSubContext_GetSet(t *testing.T) {
+	t.Parallel()
+
 	is := assert.New(t)
 	key := "foo"
 	val := "bar"

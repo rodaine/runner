@@ -10,6 +10,8 @@ import (
 )
 
 func TestFailable_Interfaces(t *testing.T) {
+	t.Parallel()
+
 	f := &failable{}
 	var _ Command = f
 	var _ Rollbacker = f
@@ -18,6 +20,8 @@ func TestFailable_Interfaces(t *testing.T) {
 }
 
 func TestFailable_String(t *testing.T) {
+	t.Parallel()
+
 	is := assert.New(t)
 	cmd := &MockCommand{name: "foo"}
 	f := MakeFailable(cmd)
@@ -28,6 +32,8 @@ func TestFailable_String(t *testing.T) {
 }
 
 func TestFailable_Run_Success(t *testing.T) {
+	t.Parallel()
+
 	is := assert.New(t)
 	cmd := &MockCommand{name: "foo"}
 	f := MakeFailable(cmd)
@@ -41,6 +47,8 @@ func TestFailable_Run_Success(t *testing.T) {
 }
 
 func TestFailable_Run_Failure(t *testing.T) {
+	t.Parallel()
+
 	is := assert.New(t)
 
 	cmdA := &MockCommand{name: "foo", err: errors.New("")}
@@ -59,6 +67,8 @@ func TestFailable_Run_Failure(t *testing.T) {
 }
 
 func TestFailable_Rollback_Success(t *testing.T) {
+	t.Parallel()
+
 	is := assert.New(t)
 
 	cmdA := &MockCommand{name: "foo"}
@@ -77,6 +87,8 @@ func TestFailable_Rollback_Success(t *testing.T) {
 }
 
 func TestFailable_Rollback_Failure(t *testing.T) {
+	t.Parallel()
+
 	is := assert.New(t)
 
 	cmdA := &MockCommand{name: "fizz"}
@@ -100,6 +112,8 @@ func TestFailable_Rollback_Failure(t *testing.T) {
 }
 
 func TestFailable_DryRun_Success(t *testing.T) {
+	t.Parallel()
+
 	is := assert.New(t)
 	cmd := &MockCommand{name: "foo"}
 	DryRun(MakeFailable(cmd))
@@ -107,6 +121,8 @@ func TestFailable_DryRun_Success(t *testing.T) {
 }
 
 func TestFailable_DryRun_Failure(t *testing.T) {
+	t.Parallel()
+
 	is := assert.New(t)
 	cmd := &MockCommand{name: "foo", err: errors.New("bar")}
 

@@ -9,6 +9,8 @@ import (
 )
 
 func TestParallel_Interfaces(t *testing.T) {
+	t.Parallel()
+
 	var (
 		p *parallel
 		_ Command      = p
@@ -19,6 +21,8 @@ func TestParallel_Interfaces(t *testing.T) {
 }
 
 func TestParallel_String(t *testing.T) {
+	t.Parallel()
+
 	is := assert.New(t)
 	p := MakeParallel()
 	is.Contains(fmt.Sprint(p), "0")
@@ -28,6 +32,8 @@ func TestParallel_String(t *testing.T) {
 }
 
 func TestParallel_Run_Empty(t *testing.T) {
+	t.Parallel()
+
 	is := assert.New(t)
 
 	ctx := NewContext()
@@ -38,6 +44,8 @@ func TestParallel_Run_Empty(t *testing.T) {
 }
 
 func TestParallel_Run_Success(t *testing.T) {
+	t.Parallel()
+
 	is := assert.New(t)
 
 	cmdA := &MockCommand{name: "A"}
@@ -57,6 +65,8 @@ func TestParallel_Run_Success(t *testing.T) {
 }
 
 func TestParallel_Run_Rollback(t *testing.T) {
+	t.Parallel()
+
 	is := assert.New(t)
 	err := errors.New("foobar")
 
@@ -83,12 +93,16 @@ func TestParallel_Run_Rollback(t *testing.T) {
 }
 
 func TestParallel_Rollback_Panic(t *testing.T) {
+	t.Parallel()
+
 	assert.Panics(t, func() {
 		MakeParallel().(Rollbacker).Rollback(NewContext(), DefaultPrinter)
 	})
 }
 
 func TestParallel_Rollback_Empty(t *testing.T) {
+	t.Parallel()
+
 	is := assert.New(t)
 
 	ctx := NewContext()
@@ -103,6 +117,8 @@ func TestParallel_Rollback_Empty(t *testing.T) {
 }
 
 func TestParallel_Rollback_Success(t *testing.T) {
+	t.Parallel()
+
 	is := assert.New(t)
 
 	cmdA := &MockCommand{name: "A"}
@@ -122,6 +138,8 @@ func TestParallel_Rollback_Success(t *testing.T) {
 }
 
 func TestParallel_DryRun_Empty(t *testing.T) {
+	t.Parallel()
+
 	ctx := NewContext()
 	p := MakeParallel().(*parallel)
 
@@ -130,6 +148,8 @@ func TestParallel_DryRun_Empty(t *testing.T) {
 }
 
 func TestParallel_DryRun_Success(t *testing.T) {
+	t.Parallel()
+
 	is := assert.New(t)
 
 	cmdA := &MockCommand{name: "A"}
@@ -150,6 +170,8 @@ func TestParallel_DryRun_Success(t *testing.T) {
 }
 
 func TestParallel_DryRun_Fail(t *testing.T) {
+	t.Parallel()
+
 	is := assert.New(t)
 	err := errors.New("foo")
 
@@ -173,6 +195,8 @@ func TestParallel_DryRun_Fail(t *testing.T) {
 }
 
 func TestParallel_InFailingSequence(t *testing.T) {
+	t.Parallel()
+
 	is := assert.New(t)
 	err := errors.New("foo")
 

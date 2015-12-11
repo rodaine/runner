@@ -13,6 +13,8 @@ func getTestPrinter() (*stdPrinter, *bytes.Buffer) {
 }
 
 func TestPrinter_Log(t *testing.T) {
+	t.Parallel()
+
 	is := assert.New(t)
 	p, out := getTestPrinter()
 
@@ -66,12 +68,16 @@ func TestPrinter_Log(t *testing.T) {
 }
 
 func TestPrinter_Format(t *testing.T) {
+	t.Parallel()
+
 	p, out := getTestPrinter()
 	p.Info("foo%s", "bar")
 	assert.Equal(t, "foobar\n", out.String())
 }
 
 func TestPrinter_WithPrefix(t *testing.T) {
+	t.Parallel()
+
 	p, out := getTestPrinter()
 	prefixed := p.WithPrefix("foo")
 	prefixed.Info("bar")

@@ -9,6 +9,8 @@ import (
 )
 
 func TestSequence_Interfaces(t *testing.T) {
+	t.Parallel()
+
 	var (
 		seq *sequence
 		_   Command      = seq
@@ -19,6 +21,8 @@ func TestSequence_Interfaces(t *testing.T) {
 }
 
 func TestSequence_String(t *testing.T) {
+	t.Parallel()
+
 	is := assert.New(t)
 	seq := NewSequence()
 	is.Contains(fmt.Sprint(seq), "0")
@@ -28,6 +32,8 @@ func TestSequence_String(t *testing.T) {
 }
 
 func TestSequence_Run_EmptySequence(t *testing.T) {
+	t.Parallel()
+
 	is := assert.New(t)
 	ctx := NewContext()
 	seq := NewSequence()
@@ -37,6 +43,8 @@ func TestSequence_Run_EmptySequence(t *testing.T) {
 }
 
 func TestSequence_Run_Success(t *testing.T) {
+	t.Parallel()
+
 	is := assert.New(t)
 
 	cmdA := &MockCommand{name: "A"}
@@ -56,6 +64,8 @@ func TestSequence_Run_Success(t *testing.T) {
 }
 
 func TestSequence_Run_Rollback(t *testing.T) {
+	t.Parallel()
+
 	is := assert.New(t)
 	err := errors.New("foobar")
 
@@ -80,6 +90,8 @@ func TestSequence_Run_Rollback(t *testing.T) {
 }
 
 func TestSequence_DryRun_EmptySequence(t *testing.T) {
+	t.Parallel()
+
 	is := assert.New(t)
 	p, out := getTestPrinter()
 
@@ -92,6 +104,8 @@ func TestSequence_DryRun_EmptySequence(t *testing.T) {
 }
 
 func TestSequence_DryRun_Success(t *testing.T) {
+	t.Parallel()
+
 	is := assert.New(t)
 
 	cmdA := &MockCommand{name: "A"}
@@ -105,6 +119,8 @@ func TestSequence_DryRun_Success(t *testing.T) {
 }
 
 func TestSequence_DryRun_Fail(t *testing.T) {
+	t.Parallel()
+
 	is := assert.New(t)
 	err := errors.New("foobar")
 
@@ -124,6 +140,8 @@ func TestSequence_DryRun_Fail(t *testing.T) {
 }
 
 func TestSequence_Rollback_EmptySequence(t *testing.T) {
+	t.Parallel()
+
 	is := assert.New(t)
 	p, out := getTestPrinter()
 
@@ -141,6 +159,8 @@ func TestSequence_Rollback_EmptySequence(t *testing.T) {
 }
 
 func TestSequence_Rollback_Success(t *testing.T) {
+	t.Parallel()
+
 	is := assert.New(t)
 
 	cmdA := &MockCommand{name: "A"}
