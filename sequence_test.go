@@ -9,11 +9,13 @@ import (
 )
 
 func TestSequence_Interfaces(t *testing.T) {
-	seq := &sequence{}
-	var _ Command = seq
-	var _ Rollbacker = seq
-	var _ DryRunner = seq
-	var _ fmt.Stringer = seq
+	var (
+		seq *sequence
+		_   Command      = seq
+		_   Rollbacker   = seq
+		_   DryRunner    = seq
+		_   fmt.Stringer = seq
+	)
 }
 
 func TestSequence_String(t *testing.T) {
@@ -27,14 +29,11 @@ func TestSequence_String(t *testing.T) {
 
 func TestSequence_Run_EmptySequence(t *testing.T) {
 	is := assert.New(t)
-	p, out := getTestPrinter()
-
 	ctx := NewContext()
 	seq := NewSequence()
 
-	seq.Run(ctx, p)
+	seq.Run(ctx, DefaultPrinter)
 	is.NoError(ctx.Err())
-	is.Empty(out.String())
 }
 
 func TestSequence_Run_Success(t *testing.T) {
@@ -134,7 +133,6 @@ func TestSequence_Rollback_Success(t *testing.T) {
 	seq.Run(ctx, DefaultPrinter)
 	seq.Rollback(ctx, DefaultPrinter)
 
-	is.NoError(ctx.Err())
 	for _, cmd := range []*MockCommand{cmdA, cmdB, cmdC} {
 		is.True(cmd.ran)
 		is.False(cmd.failed)
