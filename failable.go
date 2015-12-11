@@ -53,6 +53,7 @@ func (f *failable) Rollback(ctx Context, p Printer) {
 	}
 }
 
+// TODO: Failable should still capture error like Run
 func (f *failable) DryRun(ctx Context, p Printer) {
 	if cmd, ok := f.cmd.(DryRunner); ok {
 		cmd.DryRun(ctx, p)

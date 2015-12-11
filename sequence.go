@@ -2,11 +2,6 @@ package runner
 
 import "fmt"
 
-type sequence struct {
-	id   string
-	cmds []Command
-}
-
 // NewSequence returns a Command that executes the passed in cmds in series, threading the Context through. Commands
 // passed into Run, RunWithPrinter, DryRun, and DryRunWithPrinter are initially wrapped by this Command.
 //
@@ -19,6 +14,11 @@ func NewSequence(cmds ...Command) Command {
 	return &sequence{
 		cmds: cmds,
 	}
+}
+
+type sequence struct {
+	id   string
+	cmds []Command
 }
 
 func (s *sequence) String() string {
@@ -35,6 +35,7 @@ func (s *sequence) Rollback(ctx Context, p Printer) {
 	ctx.pop()
 }
 
+// TODO: DryRun should halt execution if a command fails
 func (s *sequence) DryRun(ctx Context, p Printer) {
 	s.dryRunSubCommands(ctx, p, s.cmds)
 }
