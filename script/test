@@ -1,0 +1,20 @@
+#!/bin/bash
+
+set -e
+
+test -z "$(gofmt -l -w .       | tee /dev/stderr)"
+test -z "$(golint ./...        | tee /dev/stderr)"
+test -z "$(go tool vet -test . | tee /dev/stderr)"
+test -z "$(errcheck ./...      | tee /dev/stderr)"
+
+echo "mode: atomic" > cover.out
+
+for dir in $(find . -maxdepth 10 -not -path './.git*' -not -path '*/_*' -type d); do
+    if ls $dir/*.go &> /dev/null; then
+        go test -race -covermode=atomic -coverprofile=$dir/cover.tmp $dir
+        if [ -f $dir/cover.tmp ]; then
+            cat $dir/cover.tmp | tail -n +2 >> cover.out
+            rm $dir/cover.tmp
+        fi
+    fi
+done
