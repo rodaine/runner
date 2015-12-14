@@ -10,13 +10,10 @@ install:
   - go get -t ./...
   - go get -u github.com/kisielk/errcheck
   - go get -u github.com/golang/lint/golint
-  - go get github.com/axw/gocov/gocov
-  - go get github.com/mattn/goveralls
-  - if ! go get github.com/golang/tools/cmd/cover; then go get golang.org/x/tools/cmd/cover; fi
+  - go get -u github.com/axw/gocov/gocov
+  - go get -u github.com/mattn/goveralls
+  - if ! go get -u github.com/golang/tools/cmd/cover; then go get -u golang.org/x/tools/cmd/cover; fi
 
 script:
-  - gofmt -l .
-  - golint ./...
-  - go tool vet -test .
-  - errcheck ./...
-  - goveralls -service=travis-ci
+  - ./script/test
+  - goveralls -coverprofile=cover.out -service=$CI_SERVICE -repotoken $COVERALLS_TOKEN
