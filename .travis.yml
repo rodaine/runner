@@ -16,4 +16,4 @@ install:
 
 script:
   - ./script/test
-  - goveralls -coverprofile=cover.out -service=$CI_SERVICE -repotoken $COVERALLS_TOKEN
+  - goveralls -coverprofile=cover.out -service=travis-ci -repotoken $COVERALLS_TOKEN
