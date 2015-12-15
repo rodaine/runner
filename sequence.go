@@ -71,10 +71,10 @@ func (s *sequence) rollbackSubCommands(ctx Context, p Printer, cmds []Command) {
 		return
 	}
 
-	ctx.pop()
 	if cmd, ok := cmds[len(cmds)-1].(Rollbacker); ok {
 		cmd.Rollback(ctx, p)
 	}
+	ctx.pop()
 
 	if len(cmds) == 1 {
 		return

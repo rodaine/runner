@@ -178,3 +178,29 @@ func TestSequence_Rollback_Success(t *testing.T) {
 		is.True(cmd.rolledBack)
 	}
 }
+
+func TestSequence_Rollback_SequenceInSequence(t *testing.T) {
+	t.Parallel()
+
+	is := assert.New(t)
+
+	cmdA := &MockCommand{name: "A"}
+	cmdB := &MockCommand{name: "B", set: "foo", see: "foo"}
+	cmdC := &MockCommand{name: "C", see: "foo", err: errors.New("bar")}
+
+	ctx := NewContext()
+	seq := NewSequence(cmdA, cmdB)
+	cmd := NewSequence(seq, cmdC)
+	cmd.Run(ctx, DefaultPrinter)
+
+	is.True(cmdA.ran)
+	is.True(cmdA.rolledBack)
+
+	is.True(cmdB.ran)
+	is.True(cmdB.setVal)
+	is.True(cmdB.rolledBack)
+	is.True(cmdB.seenVal)
+
+	is.True(cmdC.ran)
+	is.True(cmdC.failed)
+}
