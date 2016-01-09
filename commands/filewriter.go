@@ -88,7 +88,7 @@ func (w *fileWriter) Run(ctx runner.Context, p runner.Printer) {
 	}
 
 	n, err := io.Copy(f, src)
-	p.Debug("bytes written: %d", n)
+	p.Debug("%d bytes written to %s", n, w.destPath)
 	w.setBytesWritten(ctx, n)
 
 	_ = f.Close()

@@ -5,20 +5,13 @@ import (
 	"errors"
 	"io"
 	"testing"
-	"text/template"
 
 	"github.com/rodaine/runner"
 	"github.com/stretchr/testify/assert"
 )
 
 var (
-	txt = template.Must(template.New("txt").Parse(`{{.Field}}bar`))
-
-	data   = struct{ Field string }{"foo"}
-	key    = "tplData"
 	outKey = "out"
-
-	expected = "foobar"
 )
 
 func TestRenderTemplate_Run_Success(t *testing.T) {
@@ -26,14 +19,14 @@ func TestRenderTemplate_Run_Success(t *testing.T) {
 	is := assert.New(t)
 
 	ctx := runner.NewContext()
-	ctx.Set(key, data)
+	ctx.Set(TestTemplateDataKey, TestTemplateData)
 
-	RenderTemplate(txt, key, outKey).Run(ctx, runner.DefaultPrinter)
+	RenderTemplate(TestTemplate, TestTemplateDataKey, outKey).Run(ctx, runner.DefaultPrinter)
 
 	is.NoError(ctx.Err())
 	out, found := fetchRenderedTemplate(ctx)
 	is.True(found)
-	is.Equal(expected, renderedString(out))
+	is.Equal(TestTemplateExpected, renderedString(out))
 }
 
 func TestRenderTemplate_Run_Error(t *testing.T) {
@@ -43,7 +36,7 @@ func TestRenderTemplate_Run_Error(t *testing.T) {
 	ctx := runner.NewContext()
 
 	err := errors.New("foobar")
-	RenderTemplate(&ErrorTemplate{err}, key, outKey).Run(ctx, runner.DefaultPrinter)
+	RenderTemplate(&ErrorTemplate{err}, TestTemplateDataKey, outKey).Run(ctx, runner.DefaultPrinter)
 
 	is.Equal(err, ctx.Err())
 	out, found := fetchRenderedTemplate(ctx)
@@ -56,14 +49,14 @@ func TestRenderTemplate_DryRun_Success(t *testing.T) {
 	is := assert.New(t)
 
 	ctx := runner.NewContext()
-	ctx.Set(key, data)
+	ctx.Set(TestTemplateDataKey, TestTemplateData)
 
-	RenderTemplate(txt, key, outKey).(*tpl).DryRun(ctx, runner.DefaultPrinter)
+	RenderTemplate(TestTemplate, TestTemplateDataKey, outKey).(*tpl).DryRun(ctx, runner.DefaultPrinter)
 
 	is.NoError(ctx.Err())
 	out, found := fetchRenderedTemplate(ctx)
 	is.True(found)
-	is.Equal(expected, renderedString(out))
+	is.Equal(TestTemplateExpected, renderedString(out))
 }
 
 func renderedString(r io.Reader) string {
