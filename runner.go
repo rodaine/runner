@@ -9,7 +9,6 @@ func Run(cmds ...Command) error {
 // RunWithPrinter executes the passed in Commands in sequence, returning an error if the execution failed and a rollback
 // occurred. The provided Printer is passed to all commands for logging.
 func RunWithPrinter(p Printer, cmds ...Command) error {
-	// TODO: estimate depth
 	ctx := NewContext()
 	(&sequence{cmds: cmds}).Run(ctx, p)
 	return ctx.Err()

@@ -328,16 +328,3 @@ func TestFileWriter_truncateFile(t *testing.T) {
 
 	_ = f.Close()
 }
-
-func prepTempFile() string {
-	var f *os.File
-	f, _ = ioutil.TempFile("", "TestFileWriter-")
-	fn := f.Name()
-	_ = f.Close()
-	_ = os.Remove(fn)
-	return fn
-}
-
-func cleanFile(fn string) {
-	_ = os.Remove(fn)
-}
